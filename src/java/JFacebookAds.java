@@ -6,13 +6,18 @@ import com.facebook.ads.*;
 import android.util.Log;
 
 public class JFacebookAds{
+    private Activity activity;
+
+    public JFacebookAds(Activity activity){
+        this.activity = activity;
+    }
 
     public static String DoStuff() {
         return "Message From Java!";
     }
 
-    public String Fuck(){
-        return "hahahah";
+    public String Public(){
+        return "public test";
     }
 
     // public void Initialize(Context context){

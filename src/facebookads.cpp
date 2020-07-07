@@ -8,7 +8,6 @@
 #include <dmsdk/sdk.h>
 
 #if defined(DM_PLATFORM_ANDROID)
-#include <jni.h>
 
 
 static JNIEnv* Attach()
@@ -84,19 +83,22 @@ static int DoStuffJava(lua_State* L)
 //     return 0;
 // }
 
-static int Fuck(lua_State* L)
+static int Public(lua_State* L)
 {
-    //DM_LUA_STACK_CHECK(L, 1);
+    DM_LUA_STACK_CHECK(L, 1);
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
     //const char* text_lua = luaL_checkstring(L,1);
     //jstring text = env->NewStringUTF(text_lua);
 
-    jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
-    jmethodID method = env->GetMethodID(cls, "Fuck", "()Ljava/lang/String;");
     
-    jstring return_value = (jstring)env->CallObjectMethod(cls, method);
+    jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
+    jmethodID jni_constructor = env->GetMethodID(cls, "<init>", "(Landroid/app/Activity;)V");
+    jobject jni_global_ref = env->NewGlobalRef(env->NewObject(cls, jni_constructor, dmGraphics::GetNativeAndroidActivity()));
+    jmethodID method = env->GetMethodID(cls, "Public", "(Ljava/lang/String;)Ljava/lang/String;");
+    
+    jstring return_value = (jstring)env->CallObjectMethod(jni_global_ref , method);
     lua_pushstring(L, env->GetStringUTFChars(return_value, 0));
     env->DeleteLocalRef(return_value);
     return 1;
@@ -127,7 +129,7 @@ static int Fuck(lua_State* L)
 static const luaL_reg Module_methods[] =
 {
     {"dostuff_java", DoStuffJava},
-    {"fuck", Fuck},
+    {"public", Public},
     {0, 0}
 };
 
