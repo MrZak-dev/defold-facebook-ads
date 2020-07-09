@@ -6,8 +6,9 @@
 // Defold SDK
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
+#include <dmsdk/dlib/log.h>
 
-#if defined(DM_PLATFORM_ANDROID)
+//#if defined(DM_PLATFORM_ANDROID)
 
 
 static JNIEnv* Attach()
@@ -39,6 +40,20 @@ struct AttachScope
         Detach(m_Env);
     }
 };
+
+struct Facebook {
+    Facebook()
+    {
+        memset(this, 0, sizeof(*this));
+    }
+
+    jobject m_FB;
+    jclass m_FacebookAdsClass;
+    jmethodID m_Public;
+    jmethodID m_Initialize;
+    jmethodID m_LoadInterstitial;
+};
+
 }
 
 static jclass GetClass(JNIEnv* env, const char* classname)
@@ -55,81 +70,69 @@ static jclass GetClass(JNIEnv* env, const char* classname)
     return outcls;
 }
 
-static int DoStuffJava(lua_State* L)
-{
-    DM_LUA_STACK_CHECK(L, 1);
+
+
+static Facebook g_Facebook; // global facebook object 
+
+static void InitFacebookExtension(){
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
-    jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
-    jmethodID method = env->GetStaticMethodID(cls, "DoStuff", "()Ljava/lang/String;");
+    g_Facebook.m_FacebookAdsClass = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
+    jmethodID jni_constructor = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "<init>", "(Landroid/app/Activity;)V"); //TODO delete later
+    g_Facebook.m_FB = env->NewGlobalRef(env->NewObject(g_Facebook.m_FacebookAdsClass, jni_constructor, dmGraphics::GetNativeAndroidActivity()));
+
     
-    jstring return_value = (jstring)env->CallStaticObjectMethod(cls, method);
-    lua_pushstring(L, env->GetStringUTFChars(return_value, 0));
-    env->DeleteLocalRef(return_value);
-    return 1;
+    g_Facebook.m_Public = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "Public", "(Ljava/lang/String;)Ljava/lang/String;");
+    g_Facebook.m_Initialize = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "Initialize", "(Landroid/app/Activity;)V");
+    g_Facebook.m_LoadInterstitial = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "LoadInterstitial", "(Landroid/app/Activity;Ljava/lang/String;)V");
+    dmLogInfo("InitFacebookExtension ........");
 }
-
-// static int Initialize(lua_State* L)
-// {
-//     AttachScope attachscope;
-//     JNIEnv* env = attachscope.m_Env;
-
-//     jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
-//     jmethodID method = env->GetMethodID(cls, "Initialize", "(Landroid/content/Context;)V");
-    
-//     env->CallVoidMethod(cls, method , dmGraphics::GetNativeAndroidActivity());
-
-//     return 0;
-// }
 
 static int Public(lua_State* L)
 {
-    DM_LUA_STACK_CHECK(L, 1);
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
 
-    //const char* text_lua = luaL_checkstring(L,1);
-    //jstring text = env->NewStringUTF(text_lua);
+    const char* text_lua = luaL_checkstring(L,1);
+    jstring text = env->NewStringUTF(text_lua); // TODO : delete later
 
-    
-    jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
-    jmethodID jni_constructor = env->GetMethodID(cls, "<init>", "(Landroid/app/Activity;)V");
-    jobject jni_global_ref = env->NewGlobalRef(env->NewObject(cls, jni_constructor, dmGraphics::GetNativeAndroidActivity()));
-    jmethodID method = env->GetMethodID(cls, "Public", "(Ljava/lang/String;)Ljava/lang/String;");
-    
-    jstring return_value = (jstring)env->CallObjectMethod(jni_global_ref , method);
+    jstring return_value = (jstring)env->CallObjectMethod(g_Facebook.m_FB , g_Facebook.m_Public , text);
     lua_pushstring(L, env->GetStringUTFChars(return_value, 0));
     env->DeleteLocalRef(return_value);
     return 1;
 }
 
+static int Initialize(lua_State* L){
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
 
+    env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_Initialize , dmGraphics::GetNativeAndroidActivity());
+    dmLogInfo("Initialize ........");
+    return 0;
+}
 
-// static int LoadInterstitial(lua_State* L)
-// {
+static int LoadInterstitial(lua_State* L){
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    //DM_LUA_STACK_CHECK(L, 1);
+
+    const char* lua_placement_id = luaL_checkstring(L,1);
+    jstring placement_id = env->NewStringUTF(lua_placement_id); // TODO : delete later
     
-//     AttachScope attachscope;
-//     JNIEnv* env = attachscope.m_Env;
-    
-//     //Placement Id
-//     char placementId_lua = luaL_checkstring(L,1);
-
-//     jclass cls = GetClass(env, "com.b4dnetwork.extensions.JFacebookAds");
-//     jmethodID method = env->GetMethodID(cls, "LoadInterstitial", "(Landroid/content/Context;Ljava/lang/String)V");
-    
-//     env->CallVoidMethod(cls, method , dmGraphics::GetNativeAndroidActivity() , placementId_lua);
-
-//     return 0;
-// }
-
+    env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_LoadInterstitial , dmGraphics::GetNativeAndroidActivity() , placement_id);
+    dmLogInfo("LoadInterstitial ........");
+    return 0;
+}
 
 
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
-    {"dostuff_java", DoStuffJava},
     {"public", Public},
+    {"initialize", Initialize},
+    {"load_interstitial", LoadInterstitial},
     {0, 0}
 };
 
@@ -153,6 +156,7 @@ static dmExtension::Result InitializeExtension(dmExtension::Params* params)
 {
     // Init Lua
     LuaInit(params->m_L);
+    InitFacebookExtension();
     printf("Registered %s Extension\n", MODULE_NAME);
     return dmExtension::RESULT_OK;
 }
@@ -167,29 +171,6 @@ static dmExtension::Result FinalizeExtension(dmExtension::Params* params)
     return dmExtension::RESULT_OK;
 }
 
-#else
-
-static dmExtension::Result AppInitializeExtension(dmExtension::AppParams* params)
-{
-    dmLogWarning("Registered %s (null) Extension\n", MODULE_NAME);
-    return dmExtension::RESULT_OK;
-}
-
-static dmExtension::Result InitializeExtension(dmExtension::Params* params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-static dmExtension::Result AppFinalizeExtension(dmExtension::AppParams* params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-static dmExtension::Result FinalizeExtension(dmExtension::Params* params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-#endif
+//#endif
 
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeExtension, AppFinalizeExtension, InitializeExtension, 0, 0, FinalizeExtension)
