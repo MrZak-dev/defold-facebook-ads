@@ -1,0 +1,53 @@
+function init(self)
+	msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
+	
+
+	--print(FacebookAds.public("This is a message from lua"))
+	if FacebookAds ~= nil then
+		FacebookAds.initialize()
+		FacebookAds.load_interstitial("738888353645163_738888946978437")
+		FacebookAds.load_rewarded_video("738888353645163_738892963644702")
+	end
+	
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		print("Touch!")
+	end
+end
+
+function on_message(self, message_id, message)
+	
+	if message_id == hash("show_interstitial") then
+		if FacebookAds ~= nil then
+			FacebookAds.show_interstitial()
+		end
+	end
+
+	if message_id == hash("show_rewarded") then
+		if FacebookAds ~= nil then
+			FacebookAds.show_rewarded_video()
+		end
+	end
+
+	if message_id == hash("show_banner") then
+		if FacebookAds ~= nil then
+			FacebookAds.show_banner()
+		end
+	end
+
+	if message_id == hash("hide_banner") then
+		if FacebookAds ~= nil then
+			FacebookAds.hide_banner()
+		end
+	end
+
+	if message_id == hash("load_banner") then
+		if FacebookAds ~= nil then
+			FacebookAds.load_banner("IMG_16_9_APP_INSTALL#738888353645163_757952225072109")
+			print(FacebookAds.is_rewarded_loaded())
+		end
+	end
+
+end
