@@ -161,6 +161,8 @@ public class JFacebookAds{
         if(isRewardedLoaded){
             isRewardedLoaded = false;
             FbRewardedVideoAd.show();
+        }else{
+            Log.e(TAG,"Rewarded is not Loaded yet !");
         }
     }
 
@@ -246,6 +248,29 @@ public class JFacebookAds{
         Log.i(TAG, "Banner hidden !");
     }
 
+    /**
+     *
+     * @return Is interstitial Ad loaded
+     */
+    public boolean IsInterstitialLoaded(){
+        return isInterstitialLoaded;
+    }
+
+    /**
+     *
+     * @return Is Rewarded Video Loaded
+     */
+    public boolean IsRewardedLoaded(){
+        return isRewardedLoaded;
+    }
+
+    /**
+     *
+     * @return Is Banner loaded
+     */
+    public boolean IsBannerLoaded(){
+        return isBannerLoaded;
+    }
 
     private void AddBannerToLayout(){
 

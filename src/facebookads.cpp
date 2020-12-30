@@ -46,10 +46,8 @@ struct Facebook {
     {
         memset(this, 0, sizeof(*this));
     }
-    // void Update();
     jobject m_FB;
     jclass m_FacebookAdsClass;
-    // jmethodID m_Public;
     jmethodID m_Initialize;
     jmethodID m_LoadInterstitial;
     jmethodID m_LoadRewardedVideo;
@@ -58,13 +56,13 @@ struct Facebook {
     jmethodID m_LoadBanner;
     jmethodID m_ShowBanner;
     jmethodID m_HideBanner;
+    jmethodID m_IsInterstitialLoaded;
+    jmethodID m_IsRewardedLoaded;
+    jmethodID m_IsBannerLoaded;
 };
 
 }
 
-// Facebook::Update(){
-//     dmLogInfo("heh ........");
-// }
 
 static jclass GetClass(JNIEnv* env, const char* classname)
 {
@@ -84,7 +82,8 @@ static jclass GetClass(JNIEnv* env, const char* classname)
 
 static Facebook g_Facebook; // global facebook object 
 
-static void InitFacebookExtension(){
+static void InitFacebookExtension()
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
@@ -102,8 +101,11 @@ static void InitFacebookExtension(){
     g_Facebook.m_ShowRewardedVideo = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "ShowRewardedVideo", "()V");
     g_Facebook.m_ShowBanner = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "ShowBanner", "()V");
     g_Facebook.m_HideBanner = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "HideBanner", "()V");
+    g_Facebook.m_IsInterstitialLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsInterstitialLoaded", "()Z");
+    g_Facebook.m_IsRewardedLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsRewardedLoaded", "()Z");
+    g_Facebook.m_IsBannerLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsBannerLoaded", "()Z");
    
-    dmLogInfo("InitFacebookExtension ........");
+    dmLogInfo("Init Facebook Extension ........");
 }
 
 // static int Public(lua_State* L)
@@ -123,19 +125,22 @@ static void InitFacebookExtension(){
 //     return 1;
 // }
 
-static int Initialize(lua_State* L){
+static int Initialize(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 0);
 
     env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_Initialize , dmGraphics::GetNativeAndroidActivity());
     dmLogInfo("FB Ads Initialize ........");
     return 0;
 }
 
-static int LoadInterstitial(lua_State* L){
+static int LoadInterstitial(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
-    //DM_LUA_STACK_CHECK(L, 1);
+    DM_LUA_STACK_CHECK(L, 0);
 
     const char* lua_placement_id = luaL_checkstring(L,1);
     jstring placement_id = env->NewStringUTF(lua_placement_id); 
@@ -146,9 +151,11 @@ static int LoadInterstitial(lua_State* L){
 }
 
 
-static int ShowInterstitial(lua_State* L){
+static int ShowInterstitial(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 0);
 
     env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_ShowInterstitial);
     return 0;
@@ -158,7 +165,7 @@ static int ShowInterstitial(lua_State* L){
 static int LoadRewardedVideo(lua_State* L){
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
-    //DM_LUA_STACK_CHECK(L, 1);
+    DM_LUA_STACK_CHECK(L, 0);
 
     const char* lua_placement_id = luaL_checkstring(L,1);
     jstring placement_id = env->NewStringUTF(lua_placement_id); 
@@ -169,9 +176,11 @@ static int LoadRewardedVideo(lua_State* L){
 }
 
 
-static int ShowRewardedVideo(lua_State* L){
+static int ShowRewardedVideo(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 0);
 
     env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_ShowRewardedVideo);
     return 0;
@@ -181,7 +190,7 @@ static int ShowRewardedVideo(lua_State* L){
 static int LoadBanner(lua_State* L){
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
-    //DM_LUA_STACK_CHECK(L, 1);
+    DM_LUA_STACK_CHECK(L, 0);
 
     const char* lua_placement_id = luaL_checkstring(L,1);
     jstring placement_id = env->NewStringUTF(lua_placement_id); 
@@ -191,23 +200,69 @@ static int LoadBanner(lua_State* L){
     return 0;
 }
 
-static int ShowBanner(lua_State* L){
+static int ShowBanner(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 0);
 
     env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_ShowBanner);
     return 0;
 }
 
-static int HideBanner(lua_State* L){
+static int HideBanner(lua_State* L)
+{
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 0);
 
     env->CallVoidMethod(g_Facebook.m_FB , g_Facebook.m_HideBanner);
     return 0;
 }
 
+static int IsInterstitialLoaded(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
 
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsInterstitialLoaded);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+
+static int IsRewardedLoaded(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
+
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsRewardedLoaded);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+
+static int IsBannerLoaded(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
+
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsBannerLoaded);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
 
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
@@ -220,6 +275,9 @@ static const luaL_reg Module_methods[] =
     {"load_banner", LoadBanner},
     {"show_banner", ShowBanner},
     {"hide_banner", HideBanner},
+    {"is_interstitial_loaded", IsInterstitialLoaded},
+    {"is_rewarded_loaded", IsRewardedLoaded},
+    {"is_banner_loaded", IsBannerLoaded},
     {0, 0}
 };
 
