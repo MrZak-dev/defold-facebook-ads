@@ -28,7 +28,7 @@ FacebookAds.is_interstitial_loaded() -- Returns boolean , indicates if interstit
 FacebookAds.is_rewarded_loaded() -- Returns boolean , indicates if Rewarded video ad is loaded
 FacebookAds.is_banner_loaded() -- Returns boolean , indicates if Banner ad is loaded
 
-FacebookAds.IsInterstitialDismissed() -- Returns true if The Interstitial is dismissed by the user , This will be set to false after each show_interstitial() call
+FacebookAds.is_interstitial_dismissed() -- Returns true if The Interstitial is dismissed by the user , This will be set to false after each show_interstitial() call
 FacebookAds.is_rewarded_dismissed() -- Returns true if The Rewarded Video is dismissed (NOT COMPLETED) by the user , This will be set to false after each show_rewarded_video() call
 FacebookAds.is_rewarded_completed() -- Returns true if The Rewarded Video is dismissed (COMPLETED/REWARD) by the user , This will be set to false after each show_rewarded_video() call
 
