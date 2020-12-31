@@ -8,3 +8,5 @@ Thumbs.db
 .project
 .cproject
 builtins
+debug.keystore
+debug.keystore.pass.txt

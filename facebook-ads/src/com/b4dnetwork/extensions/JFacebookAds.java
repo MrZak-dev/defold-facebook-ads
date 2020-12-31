@@ -28,7 +28,8 @@ public class JFacebookAds{
 
 
     //Ads Signals
-    private boolean isInterstitialLoaded , isRewardedLoaded , isBannerShown , isBannerLoaded = false;
+    private boolean isInterstitialLoaded , isRewardedLoaded , isBannerShown ,
+            isBannerLoaded , isInterstitialDismissed , isRewardedDismissed , isRewardedCompleted = false;
 
 
     public JFacebookAds(Activity activity){
@@ -61,6 +62,7 @@ public class JFacebookAds{
             public void onInterstitialDismissed(final Ad ad) {
                 // Interstitial dismissed callback
                 Log.i(TAG, "Interstitial ad dismissed.");
+                isInterstitialDismissed = true;
                 FbInterstitialAd.loadAd(); // load the interstitial , so we can use it again.
             }
             @Override
@@ -101,7 +103,8 @@ public class JFacebookAds{
     public void ShowInterstitial(){
         if(isInterstitialLoaded){
             FbInterstitialAd.show();
-            isInterstitialLoaded = false; //reset the signal to false so the Adloaded signal from the ad listener will set it to true again when ad is loaded
+            isInterstitialLoaded = false;
+            isInterstitialDismissed = false;
         }else{
             Log.e(TAG,"Interstitial is not Loaded yet !");
         }
@@ -112,12 +115,19 @@ public class JFacebookAds{
      * @param placementId placement id
      */
     public void LoadRewardedVideo(String placementId){
+
+        if(FbRewardedVideoAd != null){//This fixes when loading an ad again
+            FbRewardedVideoAd.destroy();
+            FbRewardedVideoAd = null;
+        }
+
         FbRewardedVideoAd = new RewardedVideoAd(activity,placementId);
 
         RewardedVideoAdListener rewardedVideoListener = new RewardedVideoAdListener() {
             @Override
             public void onRewardedVideoCompleted() {
-                //TODO : Call Reward function ,
+                //TODO : Call Reward function (change from signals to lua callbacks)
+                isRewardedCompleted = true;
             }
 
             @Override
@@ -127,7 +137,7 @@ public class JFacebookAds{
 
             @Override
             public void onRewardedVideoClosed() {
-                FbRewardedVideoAd.loadAd();
+                isRewardedDismissed = true;
             }
 
             @Override
@@ -160,6 +170,8 @@ public class JFacebookAds{
     public void ShowRewardedVideo(){
         if(isRewardedLoaded){
             isRewardedLoaded = false;
+            isRewardedDismissed = false;
+            isRewardedCompleted = false;
             FbRewardedVideoAd.show();
         }else{
             Log.e(TAG,"Rewarded is not Loaded yet !");
@@ -270,6 +282,30 @@ public class JFacebookAds{
      */
     public boolean IsBannerLoaded(){
         return isBannerLoaded;
+    }
+
+    /**
+     *
+     * @return is interstitial Closed
+     */
+    public boolean IsInterstitialDismissed(){
+        return isInterstitialDismissed;
+    }
+
+    /**
+     *
+     * @return is Rewarded ad closed
+     */
+    public boolean IsRewardedDismissed(){
+        return isRewardedDismissed;
+    }
+
+    /**
+     *
+     * @return is Rewarded ad completed
+     */
+    public boolean IsRewardedCompleted(){
+        return isRewardedCompleted;
     }
 
     private void AddBannerToLayout(){

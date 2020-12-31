@@ -1,5 +1,5 @@
 [project]
-title = facebook-ads-example
+title = defold-facebook-ads
 dependencies = https://github.com/britzl/gooey/archive/master.zip
 
 [bootstrap]

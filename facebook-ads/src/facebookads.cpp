@@ -59,6 +59,9 @@ struct Facebook {
     jmethodID m_IsInterstitialLoaded;
     jmethodID m_IsRewardedLoaded;
     jmethodID m_IsBannerLoaded;
+    jmethodID m_IsInterstitialDismissed;
+    jmethodID m_IsRewardedDismissed;
+    jmethodID m_IsRewardedCompleted;
 };
 
 }
@@ -104,6 +107,9 @@ static void InitFacebookExtension()
     g_Facebook.m_IsInterstitialLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsInterstitialLoaded", "()Z");
     g_Facebook.m_IsRewardedLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsRewardedLoaded", "()Z");
     g_Facebook.m_IsBannerLoaded = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsBannerLoaded", "()Z");
+    g_Facebook.m_IsInterstitialDismissed = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsInterstitialDismissed", "()Z");
+    g_Facebook.m_IsRewardedDismissed = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsRewardedDismissed", "()Z");
+    g_Facebook.m_IsRewardedCompleted = env->GetMethodID(g_Facebook.m_FacebookAdsClass, "IsRewardedCompleted", "()Z");
    
     dmLogInfo("Init Facebook Extension ........");
 }
@@ -264,6 +270,51 @@ static int IsBannerLoaded(lua_State* L)
     return 1;
 }
 
+
+static int IsInterstitialDismissed(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
+
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsInterstitialDismissed);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+
+static int IsRewardedDismissed(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
+
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsRewardedDismissed);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+
+static int IsRewardedCompleted(lua_State* L)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+    DM_LUA_STACK_CHECK(L, 1);
+
+    bool return_value = (bool) env->CallBooleanMethod(g_Facebook.m_FB , g_Facebook.m_IsRewardedCompleted);
+    int result = return_value ? 1 : 0;
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
@@ -278,6 +329,9 @@ static const luaL_reg Module_methods[] =
     {"is_interstitial_loaded", IsInterstitialLoaded},
     {"is_rewarded_loaded", IsRewardedLoaded},
     {"is_banner_loaded", IsBannerLoaded},
+    {"is_interstitial_dismissed", IsInterstitialDismissed},
+    {"is_rewarded_dismissed", IsRewardedDismissed},
+    {"is_rewarded_completed", IsRewardedCompleted},
     {0, 0}
 };
 

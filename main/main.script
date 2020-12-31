@@ -46,7 +46,8 @@ function on_message(self, message_id, message)
 	if message_id == hash("load_banner") then
 		if FacebookAds ~= nil then
 			FacebookAds.load_banner("IMG_16_9_APP_INSTALL#738888353645163_757952225072109")
-			print(FacebookAds.is_rewarded_loaded())
+			--print(FacebookAds.is_rewarded_loaded())--test
+			print("Rewarded Completed : " .. tostring(FacebookAds.is_rewarded_completed()))
 		end
 	end
 
