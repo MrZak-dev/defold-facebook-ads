@@ -5,8 +5,8 @@ function init(self)
 	--print(FacebookAds.public("This is a message from lua"))
 	if FacebookAds ~= nil then
 		FacebookAds.initialize()
-		FacebookAds.load_interstitial("738888353645163_738888946978437")
-		FacebookAds.load_rewarded_video("738888353645163_738892963644702")
+		FacebookAds.load_interstitial("use_real_placement_id")
+		FacebookAds.load_rewarded_video("use_real_placement_id")
 	end
 	
 end
@@ -45,7 +45,7 @@ function on_message(self, message_id, message)
 
 	if message_id == hash("load_banner") then
 		if FacebookAds ~= nil then
-			FacebookAds.load_banner("IMG_16_9_APP_INSTALL#738888353645163_757952225072109")
+			FacebookAds.load_banner("use_real_placement_id") -- for testing use "IMG_16_9_APP_INSTALL#use_real_placement_id"
 			--print(FacebookAds.is_rewarded_loaded())--test
 			print("Rewarded Completed : " .. tostring(FacebookAds.is_rewarded_completed()))
 		end
